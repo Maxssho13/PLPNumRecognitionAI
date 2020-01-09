@@ -6,4 +6,6 @@ class Brain {
     this.outLayerLength = outLayer;
   }
 
+
+
 }
