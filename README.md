@@ -1,2 +1,2 @@
 # PLPNumbRecognitionAI
-A machine learning program with the goal to be able to read number 0-9 using the p5.js library.
+A machine learning project with the ability to read numbers 0-9 using the MNIST dataset and p5.js library.
