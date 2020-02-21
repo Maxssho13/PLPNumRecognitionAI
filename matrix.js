@@ -37,16 +37,45 @@ class Matrix {
     return outPutMatrix;
   }
   //function to randomize the values of a fucntion between two values. Lower inclusive upper exclusive
-  randomize(lower, upper) {
+  randomize(lower = -1, upper = 1) {
     //iterate through each row of the  matrix
     for (let i = 0; i < this.dimY; i++) {
       //iterate through each column of the matrix
       for (let j = 0; j < this.dimX; j++) {
-
         this.matrix[i][j] = (Math.round((Math.random() * (upper - lower) + lower) * 10000)) / 10000; //get rid of a few decimal places
       }
     }
     return;
+  }
+
+  /**
+   * activation function
+   * takes a string argument
+   * strings can be: "relu" and "softmax"
+   */
+  activate(func) {
+    //ReLU function
+    if (func == "relu") {
+      //iterate through every item in the this matrix
+      for (let i = 0; i < this.dimY; i++) {
+        for (let j = 0; j < this.dimX; j++) {
+          if (this.matrix[i][j] <= 0) {
+            this.matrix[i][j] *= 0.01; //small gradient. Technically leaky ReLU
+          }
+        }
+      }
+      //softmax function  
+    } else if (func == "softmax") {
+      let sum = 0;
+      for (let i = 0; i < this.dimY; i++) {
+        sum += Math.exp(this.matrix[i][0]);
+      }
+      for (let i = 0; i < this.dimY; i++) {
+        for (let j = 0; j < this.dimX; j++) {
+          this.matrix[i][j] = (Math.exp(this.matrix[i][j])) / sum
+        }
+      }
+    }
   }
 
 }

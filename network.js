@@ -13,9 +13,9 @@ class Network {
     this.weightsOutHidBias = new Matrix(outLayer, 1);
     this.weightsOutHidBias.randomize(1, 1) //initialize the weights biases as 1
   }
+
   //function to do the feed forward pass of the NN
   feedForward() {
-
 
     //calculate nodes in the hidden layer
     this.hiddenLayer.randomize(0, 0); //set every hidden layer node to 0
@@ -30,8 +30,12 @@ class Network {
 
       }
     }
+    this.hiddenLayer.activate("relu"); //passes hidden layer through activation function
+    
+
     //calculate nodes in the output outLayer
     this.outLayer.randomize(0, 0) //set every output layer node to 0
+
     for (let i = 0; i < this.outLayer.matrix.length; i++) {
       //add the biases
       this.outLayer.matrix[i][0] += this.weightsOutHidBias.matrix[i][0];
@@ -42,6 +46,8 @@ class Network {
         this.outLayer.matrix[i][0] += this.weightsOutHid.matrix[i][j] * this.hiddenLayer.matrix[j][0];
       }
     }
-
+    this.outLayer.activate("softmax");
   }
+
+  
 }

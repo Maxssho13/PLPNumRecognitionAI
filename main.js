@@ -1,23 +1,19 @@
-let net = new Network(7, 8, 2);
-
+let net = new Network(7, 8, 3);
 
 function setup() {
+  //noLoop();
+  frameRate(20);
   createCanvas(1000, 4000);
-  frameRate(1)
 
   net.inputLayer.randomize(0, 1);
   net.feedForward();
-  console.table(net.hiddenLayer.matrix);
 
 }
 
 function draw() {
-  net.weightsHidIn.randomize(-1, 1);
-  net.weightsOutHid.randomize(-1, 1);
+  net.inputLayer.randomize(0, 1);
+  net.feedForward();
   background(255);
-  for (let i = 0; i < net.inputLayer.matrix.length; i++) {
-    ellipse(100, 50 + i * 60, 40);
-  }
   push();
   //set up variables for gaussian curve
   let a = 100; //height
@@ -25,7 +21,8 @@ function draw() {
   const c = 14; //width
   let xOffset = 100; //offset in the x direction
   let yOffset; //offset in the y direction
-  //draw input neurons
+
+  //draw lines for the input to hidden nodes
   for (let i = 0; i < net.inputLayer.matrix.length; i++) {
     a = -60 + i * -60;
     yOffset = -10;
@@ -33,7 +30,6 @@ function draw() {
     for (let j = 0; j < net.hiddenLayer.matrix.length; j++) {
       a += 60;
       yOffset += 60;
-      //draw lines for the input to hidden nodes
       for (let x = 20; x < 400; x++) {
         //change width depending on weight strength
         strokeWeight(Math.pow(abs(net.weightsHidIn.matrix[j][i]), 1.5) * 4);
@@ -71,6 +67,10 @@ function draw() {
   }
 
   pop();
+  //draw input layer neurons
+  for (let i = 0; i < net.inputLayer.matrix.length; i++) {
+    ellipse(100, 50 + i * 60, 40);
+  }
   //draw hidden layer neurons
   for (let i = 0; i < net.hiddenLayer.matrix.length; i++) {
     ellipse(500, 50 + i * 60, 40);
@@ -79,5 +79,4 @@ function draw() {
   for (let i = 0; i < net.outLayer.matrix.length; i++) {
     ellipse(850, 50 + i * 60, 40);
   }
-
 }
