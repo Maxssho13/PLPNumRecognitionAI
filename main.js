@@ -7,6 +7,7 @@ function setup() {
 
   net.inputLayer.randomize(0, 1);
   net.feedForward();
+  console.log("knock, knock, neo")
 
 }
 
