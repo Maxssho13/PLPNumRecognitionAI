@@ -6,7 +6,7 @@ function setup() {
   createCanvas(1000, 4000);
 
   net.inputLayer.randomize(0, 1);
-  net.feedForward()
+  net.feedForward();
 
 }
 
