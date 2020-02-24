@@ -1,19 +1,23 @@
-let net = new Network(7, 8, 3);
+let net = new Network(2, 2, 2);
+
+const learnRate = 1;
+
+let input = 
+[
+  [1],
+  [0]
+];
 
 function setup() {
-  //noLoop();
-  frameRate(20);
+  frameRate(1);
   createCanvas(1000, 4000);
+  //net.inputLayer.randomize(0, 1);
 
-  net.inputLayer.randomize(0, 1);
-  net.feedForward();
-  console.log("knock, knock, neo")
-
+  net.feedForward(input);
+  //net.train([1, 0], learnRate);
 }
 
 function draw() {
-  net.inputLayer.randomize(0, 1);
-  net.feedForward();
   background(255);
   push();
   //set up variables for gaussian curve

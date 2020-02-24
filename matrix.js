@@ -1,47 +1,45 @@
 class Matrix {
-  constructor(dimY, dimX) { //arg1(rows) arg2(columns)
-    this.dimY = dimY; //rows
-    this.dimX = dimX; //columns
+  constructor(rows, columns) {
 
-
+    this.rows = rows;
+    this.columns = columns;
     this.matrix = [];
-    //creates matrix
-    for (let i = 0; i < this.dimY; i++) {
+
+    //creates empty matrix
+    for (let i = 0; i < this.rows; i++) {
       this.matrix[i] = [];
     }
-
   }
 
-
-  //function to do matrix multiplication between two functions. matrix1.multiply(matrix2). Returns new matrix
-  multiply(matrix2) {
-    if (this.dimY != matrix2.dimX) { //ensures the multiplication can take place. Proper dimensions.
-      console.error("Matrix multiplication error: dimensions no good");
-      return;
-    }
-    //create the output matrix with the correct size
-    let outPutMatrix = new Matrix(matrix2.dimX, matrix2.dimX);
-
-
-    //iterate through each row of the first matrix
-    for (let i = 0; i < this.dimY; i++) {
-
-      //iterate through each column of the second matrix
-      for (let j = 0; j < matrix2.dimX; j++) {
-        //dot product the rows of the first matrix and the columns of the second
-        outPutMatrix.matrix[i][j] = dotProduct(this.matrix[i], getCol(matrix2.matrix, j));
-
+  /**
+   * Maps a function to a matrix
+   * @param {Function} func - function to map the matrix over
+   */
+  map(func) {
+    let output = new Matrix(this.rows, this.columns);
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        output.matrix[i][j] = func(this.matrix[i][j], this);
       }
     }
-
-    return outPutMatrix;
+    // updates matrix after ALL calculations are done
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        this.matrix[i][j] = output.matrix[i][j];
+      }
+    }
   }
-  //function to randomize the values of a fucntion between two values. Lower inclusive upper exclusive
+
+  /**
+   * Randomizes each element in matrix
+   * @param {number} lower - lower bound inclusive
+   * @param {number} upper - upper bound exclusive
+   */
   randomize(lower = -1, upper = 1) {
     //iterate through each row of the  matrix
-    for (let i = 0; i < this.dimY; i++) {
+    for (let i = 0; i < this.rows; i++) {
       //iterate through each column of the matrix
-      for (let j = 0; j < this.dimX; j++) {
+      for (let j = 0; j < this.columns; j++) {
         this.matrix[i][j] = (Math.round((Math.random() * (upper - lower) + lower) * 10000)) / 10000; //get rid of a few decimal places
       }
     }
@@ -49,61 +47,121 @@ class Matrix {
   }
 
   /**
-   * activation function
-   * takes a string argument
-   * strings can be: "relu" and "softmax"
+   * Run activation function over matrix
+   * @param {String} func - activation function, either "relu" or "softmax"
+   * 
+   * deprecated in place of map function 
    */
   activate(func) {
     //ReLU function
     if (func == "relu") {
       //iterate through every item in the this matrix
-      for (let i = 0; i < this.dimY; i++) {
-        for (let j = 0; j < this.dimX; j++) {
+      for (let i = 0; i < this.rows; i++) {
+        for (let j = 0; j < this.columns; j++) {
           if (this.matrix[i][j] <= 0) {
-            this.matrix[i][j] *= 0.01; //small gradient. Technically leaky ReLU
+            //small gradient. Technically leaky ReLU
+            this.matrix[i][j] *= 0.01;
           }
         }
       }
+      return;
       //softmax function  
     } else if (func == "softmax") {
       let sum = 0;
-      for (let i = 0; i < this.dimY; i++) {
+      for (let i = 0; i < this.rows; i++) {
         sum += Math.exp(this.matrix[i][0]);
       }
-      for (let i = 0; i < this.dimY; i++) {
-        for (let j = 0; j < this.dimX; j++) {
-          this.matrix[i][j] = (Math.exp(this.matrix[i][j])) / sum
-        }
+      for (let i = 0; i < this.rows; i++) {
+        this.matrix[i][0] = (Math.exp(this.matrix[i][0])) / sum;
       }
+      return;
     }
   }
 
-}
-
-//function to get the column of a 2d array.
-
-function getCol(inMatrix, col) {
-  var column = [];
-  for (var i = 0; i < inMatrix.length; i++) {
-    column.push(inMatrix[i][col]);
+  /**
+   * Grabs the column of a Matrix object
+   * @param {Matrix} inMatrix - input matrix
+   * @param {number} col - column to grab
+   * @returns {number[]} output column
+   */
+  static getCol(inMatrix, col) {
+    var column = [];
+    for (var i = 0; i < inMatrix.length; i++) {
+      column.push(inMatrix[i][col]);
+    }
+    return column;
   }
-  return column;
-}
 
-//function that returns the dot product of two vectors.
-function dotProduct(vector1, vector2) {
-  if (vector1.length != vector2.length) { //detects if the vectors are compatible
-    console.error("Dot product not possible: vectors not of equal length");
-    return;
-  }
-  let products = [];
-  let output = 0;
+  /**
+   * Computes matrix multiplication
+   * @param {Matrix} matrix1 - input A
+   * @param {Matrix} matrix2 - input B
+   * @returns {Matrix} output matrix
+   */
+  static multiply(matrix1, matrix2) {
 
-  for (let i = 0; i < vector1.length; i++) { //multiply each corresponding number
-    products[i] = vector1[i] * vector2[i];
+    //ensures the multiplication can take place. Proper dimensions. Columns of first matrix need to be equal to rows of second
+    if (matrix1.columns != matrix2.rows) {
+      console.error("Matrix multiplication error: dimensions no good");
+      return;
+    }
+    //create the output matrix with the correct size
+    let outPutMatrix = new Matrix(matrix1.rows, matrix2.columns);
+
+
+    //iterate through each row of the first matrix
+    for (let i = 0; i < matrix1.rows; i++) {
+
+      //iterate through each column of the second matrix
+      for (let j = 0; j < matrix2.columns; j++) {
+        //dot product the rows of the first matrix and the columns of the second
+        outPutMatrix.matrix[i][j] = Matrix.dotProduct(matrix1.matrix[i], Matrix.getCol(matrix2.matrix, j));
+
+      }
+    }
+
+    return outPutMatrix;
   }
-  for (let i = 0; i < products.length; i++) { //add each product
-    output += products[i];
+
+  /**
+   * Computes dot product of two vectors
+   * @param {number[]} vector1 - input A
+   * @param {number[]} vector2  - input B
+   * @returns {number} dot product of A and B
+   */
+  static dotProduct(vector1, vector2) {
+    //detects if the vectors are compatible
+    if (vector1.length != vector2.length) {
+      console.error("Dot product not possible: vectors not of equal length");
+      return;
+    }
+
+    let products = [];
+    let output = 0;
+
+    //multiply each corresponding number
+    for (let i = 0; i < vector1.length; i++) {
+      products[i] = vector1[i] * vector2[i];
+    }
+    //add each product
+    for (let i = 0; i < products.length; i++) {
+      output += products[i];
+    }
+    return output;
   }
-  return output;
+
+  /**
+   * Transposes matrix
+   * @param {Matrix} input - input matrix
+   * @returns {Matrix} new transposed matrix
+   */
+  static transpose(input) {
+    let output = new Matrix(input.columns, input.rows);
+    for (let i = 0; i < input.rows; i++) {
+      for (let j = 0; j < input.columns; j++) {
+        output.matrix[j][i] = input.matrix[i][j];
+      }
+    }
+    return output;
+  }
 }

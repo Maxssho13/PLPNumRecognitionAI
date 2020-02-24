@@ -1,5 +1,10 @@
-//create brain class with arguments for length of input, hidden, and output layer.
 class Network {
+  /**
+   * Neural network object
+   * @param {number} inputLayer - \# of nodes in input layer
+   * @param {number} hiddenLayer - \# of nodes in hidden layer
+   * @param {number} outLayer - \# of nodes in output layer
+   */
   constructor(inputLayer, hiddenLayer, outLayer) {
     this.inputLayer = new Matrix(inputLayer, 1);
     this.hiddenLayer = new Matrix(hiddenLayer, 1);
@@ -15,13 +20,15 @@ class Network {
   }
 
   //function to do the feed forward pass of the NN
-  feedForward() {
+  feedForward(inputs) {
 
+    this.inputLayer.matrix = inputs
     //calculate nodes in the hidden layer
     this.hiddenLayer.randomize(0, 0); //set every hidden layer node to 0
     for (let i = 0; i < this.hiddenLayer.matrix.length; i++) {
-      //add the  biases
+      //add the biases
       this.hiddenLayer.matrix[i][0] += this.weightsHidInBias.matrix[i][0];
+
       //iterate through each node in the input layer
       for (let j = 0; j < this.inputLayer.matrix.length; j++) {
         //iterate through each input
@@ -30,8 +37,9 @@ class Network {
 
       }
     }
-    this.hiddenLayer.activate("relu"); //passes hidden layer through activation function
-    
+    // pass hidden layer over ReLU function
+    this.hiddenLayer.map(relu);
+
 
     //calculate nodes in the output outLayer
     this.outLayer.randomize(0, 0) //set every output layer node to 0
@@ -46,8 +54,66 @@ class Network {
         this.outLayer.matrix[i][0] += this.weightsOutHid.matrix[i][j] * this.hiddenLayer.matrix[j][0];
       }
     }
-    this.outLayer.activate("softmax");
-  }
+    // pass output layer over softmax function
+    this.outLayer.map(softmax);
 
-  
+  }
+  /**
+   * Training function
+   * 
+   * choo choo!
+   * @param {number[]} targets - expected results
+   * @param {number} lr - learing rate 
+   */
+  train(targets, lr) {
+
+    let outputs = this.outLayer.matrix;
+    let outErrors = new Matrix(this.outLayer.matrix.length, 1);
+
+
+    // calculate output errors
+    for (let i = 0; i < outputs.length; i++) {
+      outErrors.matrix[i] = Math.pow(outputs[i] - targets[i], 2);
+    }
+
+    let hiddenErrors = new Matrix(this.hiddenLayer.matrix.length, 1);
+    // caclulate hidden errors
+    hiddenErrors.matrix = Matrix.multiply(Matrix.transpose(net.weightsOutHid), outErrors);
+
+
+    // cost function
+    let cost = 0;
+    for (let i = 0; i < outputs.length; i++) {
+      cost += Math.pow(outputs[i] - targets[i], 2);
+    }
+
+  }
+}
+
+/**
+ * Performs ReLU function(technically leaky)
+ * @param {number} x - number to run ReLU on
+ */
+function relu(x) {
+  if (x <= 0) {
+    return x * 0.01;
+  } else {
+    return x;
+  }
+}
+
+/**
+ * Performs softmax function elementwise
+ * @param {number} x - current element being softmax'ed
+ * @param {Matirx} inObject - the matrix object being softmax'ed
+ * @returns {number} softmax of current element
+ */
+function softmax(x, inObject) {
+  let sum = 0;
+  for (let i = 0; i < inObject.rows; i++) {
+    for (let j = 0; j < inObject.columns; j++) {
+      sum += Math.exp(inObject.matrix[i][j]);
+    }
+  }
+  return Math.exp(x) / sum;
 }
