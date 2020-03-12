@@ -1,6 +1,5 @@
 class Matrix {
-  constructor(rows, columns) {
-
+  constructor(rows, columns, input) {
     this.rows = rows;
     this.columns = columns;
     this.matrix = [];
@@ -9,25 +8,30 @@ class Matrix {
     for (let i = 0; i < this.rows; i++) {
       this.matrix[i] = [];
     }
+    if (Array.isArray(input) && rows == input.length && columns == 1) {
+      for (let i = 0; i < this.rows; i++) {
+        this.matrix[i][0] = input[i];
+      }
+    } else if (typeof input !== "undefined") {
+      const e = new Error("input vector not applicable");
+      throw e;
+    }
   }
 
   /**
    * Maps a function to a matrix
-   * @param {Function} func - function to map the matrix over
+   * @param {Function} func - function to map the matrix over, can take 4 arguments: current element in matrix, whole matrix object, i, and j
+   * @returns {Matrix} returns the mapped matrix, useful for chaining
    */
   map(func) {
     let output = new Matrix(this.rows, this.columns);
     for (let i = 0; i < this.rows; i++) {
       for (let j = 0; j < this.columns; j++) {
-        output.matrix[i][j] = func(this.matrix[i][j], this);
+        output.matrix[i][j] = func(this.matrix[i][j], this, i, j);
       }
     }
-    // updates matrix after ALL calculations are done
-    for (let i = 0; i < this.rows; i++) {
-      for (let j = 0; j < this.columns; j++) {
-        this.matrix[i][j] = output.matrix[i][j];
-      }
-    }
+
+    return output;
   }
 
   /**
@@ -40,54 +44,38 @@ class Matrix {
     for (let i = 0; i < this.rows; i++) {
       //iterate through each column of the matrix
       for (let j = 0; j < this.columns; j++) {
-        this.matrix[i][j] = (Math.round((Math.random() * (upper - lower) + lower) * 10000)) / 10000; //get rid of a few decimal places
+        this.matrix[i][j] =
+          Math.round((Math.random() * (upper - lower) + lower) * 10000) / 10000; //get rid of a few decimal places
       }
     }
     return;
   }
 
   /**
-   * Run activation function over matrix
-   * @param {String} func - activation function, either "relu" or "softmax"
-   * 
-   * deprecated in place of map function 
+   * sets every element in matrix to constant
+   * @param {number} n - number to fill the matrix with
    */
-  activate(func) {
-    //ReLU function
-    if (func == "relu") {
-      //iterate through every item in the this matrix
-      for (let i = 0; i < this.rows; i++) {
-        for (let j = 0; j < this.columns; j++) {
-          if (this.matrix[i][j] <= 0) {
-            //small gradient. Technically leaky ReLU
-            this.matrix[i][j] *= 0.01;
-          }
-        }
+  fill(n) {
+    for (let i = 0; i < this.rows; i++) {
+      for (let j = 0; j < this.columns; j++) {
+        this.matrix[i][j] = n;
       }
-      return;
-      //softmax function  
-    } else if (func == "softmax") {
-      let sum = 0;
-      for (let i = 0; i < this.rows; i++) {
-        sum += Math.exp(this.matrix[i][0]);
-      }
-      for (let i = 0; i < this.rows; i++) {
-        this.matrix[i][0] = (Math.exp(this.matrix[i][0])) / sum;
-      }
-      return;
     }
   }
 
   /**
    * Grabs the column of a Matrix object
-   * @param {Matrix} inMatrix - input matrix
    * @param {number} col - column to grab
    * @returns {number[]} output column
    */
-  static getCol(inMatrix, col) {
-    var column = [];
-    for (var i = 0; i < inMatrix.length; i++) {
-      column.push(inMatrix[i][col]);
+  getCol(col) {
+    let column = [];
+    if (col > this.rows - 1 || col < 0) {
+      let e = new Error("column out of range: " + col);
+      throw e;
+    }
+    for (let i = 0; i < this.rows; i++) {
+      column.push(this.matrix[i][col]);
     }
     return column;
   }
@@ -99,24 +87,23 @@ class Matrix {
    * @returns {Matrix} output matrix
    */
   static multiply(matrix1, matrix2) {
-
     //ensures the multiplication can take place. Proper dimensions. Columns of first matrix need to be equal to rows of second
     if (matrix1.columns != matrix2.rows) {
-      console.error("Matrix multiplication error: dimensions no good");
-      return;
+      const e = new Error("Matrix multiplication error: dimensions no good");
+      throw e;
     }
     //create the output matrix with the correct size
     let outPutMatrix = new Matrix(matrix1.rows, matrix2.columns);
 
-
     //iterate through each row of the first matrix
     for (let i = 0; i < matrix1.rows; i++) {
-
       //iterate through each column of the second matrix
       for (let j = 0; j < matrix2.columns; j++) {
         //dot product the rows of the first matrix and the columns of the second
-        outPutMatrix.matrix[i][j] = Matrix.dotProduct(matrix1.matrix[i], Matrix.getCol(matrix2.matrix, j));
-
+        outPutMatrix.matrix[i][j] = Matrix.dotProduct(
+          matrix1.matrix[i],
+          matrix2.getCol(j)
+        );
       }
     }
 
@@ -132,8 +119,10 @@ class Matrix {
   static dotProduct(vector1, vector2) {
     //detects if the vectors are compatible
     if (vector1.length != vector2.length) {
-      console.error("Dot product not possible: vectors not of equal length");
-      return;
+      let e = new Error(
+        "Dot product not possible; vectors not of equal length"
+      );
+      throw e;
     }
 
     let products = [];
@@ -160,6 +149,21 @@ class Matrix {
     for (let i = 0; i < input.rows; i++) {
       for (let j = 0; j < input.columns; j++) {
         output.matrix[j][i] = input.matrix[i][j];
+      }
+    }
+    return output;
+  }
+
+  /**
+   * Sums every element of a matrix
+   * @param {Matrix} input - matrix to be summed on
+   * @returns {number} sum of all elements
+   */
+  static sum(input) {
+    let output = 0;
+    for (let i = 0; i < input.rows; i++) {
+      for (let j = 0; j < input.columns; j++) {
+        output += input.matrix[i][j];
       }
     }
     return output;

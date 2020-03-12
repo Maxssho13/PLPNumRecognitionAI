@@ -1,20 +1,20 @@
-let net = new Network(2, 2, 2);
-
+const inputLength = 7
+const hiddenLength = 8;
+const outputLength = 3;
 const learnRate = 1;
 
-let input = 
-[
-  [1],
-  [0]
-];
+let net = new Network(inputLength, hiddenLength, outputLength);
+
+let input = new Matrix(inputLength, 1);
+input.randomize();
 
 function setup() {
-  frameRate(1);
+  noLoop();
   createCanvas(1000, 4000);
   //net.inputLayer.randomize(0, 1);
 
-  net.feedForward(input);
-  //net.train([1, 0], learnRate);
+  net.feedForward(input.matrix);
+  net.train([0.5, 0.5, 0], learnRate);
 }
 
 function draw() {
